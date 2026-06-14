@@ -71,12 +71,40 @@ class NotificationService:
         self.logger.log(f"[LOG] Уведомление отправлено: [{to}]")
 
 
+class MessageTemplateRenderer:
+    def __init__(self):
+        self.templates = {
+            "registration": "{name}, вы успешно зарегистрировались.",
+            "login": "{name}, вы успешно авторизовались.",
+            "notifications": "{title}\n{text}"
+        }
+    
+    def render(self, template: str, **kwargs):
+        if template not in self.templates:
+            raise ValueError(f"Шаблон {template} не найден")
+        
+        return self.templates[template].format(**kwargs)
+
 def main():
     notifier = EmailNotifier()
     formatter = MessageFormatter()
     logger = Logger()
     validator = EmailValidator()
     service = NotificationService(notifier=notifier, formatter=formatter, logger=logger, validator=validator)
+    
+    renderer = MessageTemplateRenderer()
+    
+    message = renderer.render(
+        "registration",
+        name="Oleg"
+    )
+
+    if validator.is_valid("user@example.com"):
+        notifier.send(message, "user@example.com")
+        logger.log("Уведомление отправлено")
+    else:
+        logger.log("Ошибка: неверный email")
+    
     service.notify(title="Заголовок", text="Текст сообщения", to="example@gmail.com")
 
     sms_notifier = SmsSender()

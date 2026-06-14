@@ -19,6 +19,11 @@ class SmsSender(Notifier):
         print(f"Отправлено SMS сообщение:[{message}] на устройство: {to}")
 
 
+class PushSender(Notifier):
+    def send(self, message: str, to: str):
+        print(f"Отправлено PUSH уведомление:[{message}] на устройство: {to}")
+
+
 class ContactValidator(ABC):
     @abstractmethod
     def is_valid(self, contact: str) -> bool:
@@ -35,6 +40,11 @@ class SmsValidator(ContactValidator):
         return "+" in contact and contact[1:].isdigit()
 
 
+class PushValidator(ContactValidator):
+    def is_valid(self, contact: str) -> bool:
+        return contact.isdigit()
+
+
 class MessageFormatter:
     def format(self, title: str, text: str) -> str:
         return f"[{datetime.now().strftime("%d-%m-%Y %H:%M:%S")}] {title}: {text}"
@@ -42,7 +52,7 @@ class MessageFormatter:
 
 class Logger:
     def log(self, message: str):
-        return f"[{datetime.now().strftime("%d-%m-%Y %H:%M:%S")}] {message}"
+        print(f"[{datetime.now().strftime("%d-%m-%Y %H:%M:%S")}] {message}")
     
 
 class NotificationService:
@@ -72,8 +82,13 @@ def main():
     sms_notifier = SmsSender()
     sms_validator = SmsValidator()
     sms_service = NotificationService(notifier=sms_notifier, formatter=formatter, logger=logger, validator=sms_validator)
-    service.notify(title="Заголовок", text="Текст сообщения", to="+73827592")
+    sms_service.notify(title="Заголовок", text="Текст сообщения", to="+73827592")
 
+
+    push_notifier = PushSender()
+    push_validator = PushValidator()
+    push_service = NotificationService(notifier=push_notifier, formatter=formatter, logger=logger, validator=push_validator)
+    push_service.notify(title="Заголовок", text="Текст сообщения", to="128481239")
 
 if __name__ == "__main__":
     main()

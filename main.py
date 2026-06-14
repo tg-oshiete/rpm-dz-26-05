@@ -14,6 +14,11 @@ class EmailNotifier(Notifier):
         print(f"Отправлено email сообщение:[{message}] на устройство: {to}")
 
 
+class SmsSender(Notifier):
+    def send(self, message: str, to: str):
+        print(f"Отправлено SMS сообщение:[{message}] на устройство: {to}")
+
+
 class ContactValidator(ABC):
     @abstractmethod
     def is_valid(self, contact: str) -> bool:
@@ -23,6 +28,11 @@ class ContactValidator(ABC):
 class EmailValidator(ContactValidator):
     def is_valid(self, contact: str) -> bool:
         return "@" in contact and "." in contact
+
+
+class SmsValidator(ContactValidator):
+    def is_valid(self, contact: str) -> bool:
+        return "+" in contact and contact[1:].isdigit()
 
 
 class MessageFormatter:
@@ -44,7 +54,7 @@ class NotificationService:
 
     def notify(self, title: str, text: str, to: str):
         if not self.validator.is_valid(to):
-            self.looger.log(f"[LOG] Не пройдена валидация контакта: [{to}]")
+            self.logger.log(f"[LOG] Не пройдена валидация контакта: [{to}]")
 
         message = self.formatter.format(title, text)
         self.notifier.send(message, to)
@@ -57,8 +67,13 @@ def main():
     logger = Logger()
     validator = EmailValidator()
     service = NotificationService(notifier=notifier, formatter=formatter, logger=logger, validator=validator)
-
     service.notify(title="Заголовок", text="Текст сообщения", to="example@gmail.com")
+
+    sms_notifier = SmsSender()
+    sms_validator = SmsValidator()
+    sms_service = NotificationService(notifier=sms_notifier, formatter=formatter, logger=logger, validator=sms_validator)
+    service.notify(title="Заголовок", text="Текст сообщения", to="+73827592")
+
 
 if __name__ == "__main__":
     main()

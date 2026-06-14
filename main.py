@@ -65,6 +65,7 @@ class NotificationService:
     def notify(self, title: str, text: str, to: str):
         if not self.validator.is_valid(to):
             self.logger.log(f"[LOG] Не пройдена валидация контакта: [{to}]")
+            return
 
         message = self.formatter.format(title, text)
         self.notifier.send(message, to)
